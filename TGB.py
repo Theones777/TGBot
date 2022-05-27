@@ -1,16 +1,9 @@
 import telebot
 from telebot import types
 
-bot = telebot.TeleBot('5398675035:AAHL5muxZZWbNz-GkzlNVxJZJUyjM4FUEmI')
+from config import TOKEN
 
-# @bot.message_handler(content_types=['text'])
-# def get_text_message(message):
-#     if message.text == "Привет":
-#         bot.send_message(message.from_user.id, "Привет, чем я могу тебе помочь?")
-#     elif message.text == "/help":
-#         bot.send_message(message.from_user.id, "Напиши привет")
-#     else:
-#         bot.send_message(message.from_user.id, "Я тебя не понимаю. Напиши /help.")
+bot = telebot.TeleBot(TOKEN)
 
 name = ''
 surname = ''
@@ -66,4 +59,5 @@ def callback_worker(call):
         # переспрашиваем
 
 
-bot.polling(none_stop=True, interval=0)
+if __name__ == '__main__':
+    bot.infinity_polling()
