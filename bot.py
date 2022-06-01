@@ -1,13 +1,13 @@
 import random
-
 from aiogram import Bot, Dispatcher, executor, types
-
 import config
 import utils
 from SQLighter import SQLighter
+from os import getenv
 
 
-bot = Bot(token=config.TOKEN)
+bot_token = getenv("BOT_TOKEN")
+bot = Bot(token=bot_token)
 dp = Dispatcher(bot)
 
 
