@@ -20,7 +20,7 @@ async def game(message):
     # Формируем разметку
     markup = utils.generate_markup(row[2], row[3])
     # Отправляем аудиофайл с вариантами ответа
-    await message.answer(row[1], reply_markup=markup)
+    await bot.send_voice(message.chat.id, row[1], reply_markup=markup)
     # Включаем "игровой режим"
     utils.set_user_game(message.chat.id, row[2])
     # Отсоединяемся от БД
