@@ -1,20 +1,18 @@
 import random
 
-import telebot
-import time
-import os
-
-from telebot import types
+from aiogram import Bot, Dispatcher, executor, types
 
 import config
 import utils
 from SQLighter import SQLighter
 
-bot = telebot.TeleBot(config.TOKEN)
+
+bot = Bot(token=config.TOKEN)
+dp = Dispatcher(bot)
 
 
-@bot.message_handler(commands=['game'])
-def game(message):
+@dp.message_handler(commands=['game'])
+async def game(message):
     # Подключаемся к БД
     db_worker = SQLighter(config.database_name)
     # Получаем случайную строку из БД
@@ -22,27 +20,28 @@ def game(message):
     # Формируем разметку
     markup = utils.generate_markup(row[2], row[3])
     # Отправляем аудиофайл с вариантами ответа
-    bot.send_voice(message.chat.id, row[1], reply_markup=markup)
+    await message.answer(row[1], reply_markup=markup)
     # Включаем "игровой режим"
     utils.set_user_game(message.chat.id, row[2])
     # Отсоединяемся от БД
     db_worker.close()
 
 
-@bot.message_handler(func=lambda message: True, content_types=['text'])
-def check_answer(message):
+@dp.message_handler(lambda message: True, content_types=['text'])
+async def check_answer(message):
     # Если функция возвращает None -> Человек не в игре
     answer = utils.get_answer_for_user(message.chat.id)
     if not answer:
-        bot.send_message(message.chat.id, 'Чтобы начать игру, выберите команду /game')
+        await bot.send_message(message.chat.id, 'Чтобы начать игру, выберите команду /game')
     else:
         # Уберем клавиатуру с вариантами ответа.
         keyboard_hider = types.ReplyKeyboardRemove()
         # Если ответ правильный/неправильный
         if message.text == answer:
-            bot.send_message(message.chat.id, 'Верно!', reply_markup=keyboard_hider)
+            await bot.send_message(message.chat.id, 'Верно!', reply_markup=keyboard_hider)
         else:
-            bot.send_message(message.chat.id, 'Увы, Вы не угадали. Попробуйте ещё раз!', reply_markup=keyboard_hider)
+            await bot.send_message(message.chat.id, 'Увы, Вы не угадали. Попробуйте ещё раз!',
+                                   reply_markup=keyboard_hider)
         # Удаляем юзера из хранилища (игра закончена)
         utils.finish_user_game(message.chat.id)
 
@@ -50,4 +49,4 @@ def check_answer(message):
 if __name__ == '__main__':
     utils.count_rows()
     random.seed()
-    bot.infinity_polling()
+    executor.start_polling(dp)
